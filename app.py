@@ -1,118 +1,123 @@
 # -*- coding: utf-8 -*-
-"""Gemma 3 27B IT WebUI 演示界面（不加载真实模型权重）。"""
-from __future__ import annotations
-
+"""Gemma 3 27B IT 多模态图像文本生成 WebUI（前端展示，不加载模型）"""
 import gradio as gr
 
+def run_inference(image, text_input, system_prompt, max_tokens, temperature):
+    """多模态推理占位：仅展示界面与结果区域，不执行模型推理。"""
+    if image is None and not text_input:
+        return "请上传一张图片或输入文本提示。\n\n加载模型后，将在此显示生成的文本结果。"
+    
+    result = "【演示模式】未加载模型，以下为示例输出格式：\n\n"
+    
+    if image is not None:
+        result += "✓ 已接收图像输入\n"
+    if text_input:
+        result += f"✓ 已接收文本输入：{text_input[:50]}...\n"
+    
+    result += "\n---\n"
+    result += "【示例输出】\n"
+    result += "加载模型后，Gemma 3 27B IT 将分析输入的图像和文本，生成相应的文本回复。\n\n"
+    result += "模型特点：\n"
+    result += "• 支持图像和文本的多模态输入\n"
+    result += "• 128K token 上下文窗口（27B 版本）\n"
+    result += "• 支持超过 140 种语言\n"
+    result += "• 图像分辨率：896 x 896\n"
+    result += "• 最大输出：8192 tokens\n"
+    
+    return result
 
-def fake_load_model():
-    """模拟加载模型，实际不下载权重，仅用于界面演示。"""
-    # 在真实环境中，这里会调用 transformers 加载 google/gemma-3-27b-it 模型。
-    # 为避免耗时下载与计算，这里仅返回状态文本。
-    return "模型状态：Gemma 3 27B IT 已就绪（演示模式，未加载真实权重）"
-
-
-def fake_image_text_to_text(text: str, image=None) -> str:
-    """模拟图像-文本到文本的生成任务。"""
-    if not text or not text.strip():
-        return "请输入文本提示。"
-    if image is None:
-        return (
-            "[演示] 基于文本输入，模型已生成以下响应：\n\n"
-            "Gemma 3 27B IT 是一个多模态大语言模型，能够处理图像和文本输入，"
-            "并生成相应的文本输出。该模型在图像理解、视觉问答、图像描述生成等任务中表现优异。"
-        )
-    return (
-        "[演示] 基于图像和文本输入，模型已生成以下响应：\n\n"
-        "模型已成功分析输入图像，并结合文本提示生成了相应的描述。"
-        "Gemma 3 27B IT 能够理解图像中的视觉内容，并基于用户的问题或指令生成准确的文本回复。"
-        "该模型支持多种视觉理解任务，包括图像问答、图像描述、视觉推理等。"
-    )
-
-
-def fake_text_generation(text: str, max_tokens: int = 200) -> str:
-    """模拟纯文本生成任务。"""
-    if not text or not text.strip():
-        return "请输入文本提示。"
-    return (
-        f"[演示] 基于输入文本，模型已生成以下内容（最大长度：{max_tokens} tokens）：\n\n"
-        "Gemma 3 27B IT 是一个强大的指令调优模型，能够根据用户的输入生成连贯、"
-        "相关且有用的文本响应。该模型在对话、问答、摘要、推理等多种文本生成任务中表现优异。"
-        "模型支持多轮对话，能够理解上下文并生成符合语境的回复。"
-    )
-
-
-def build_ui():
-    with gr.Blocks(title="Gemma 3 27B IT WebUI") as demo:
-        gr.Markdown("## Gemma 3 27B IT 多模态大语言模型 · WebUI 演示")
-        gr.Markdown(
-            "本界面以交互方式展示 Gemma 3 27B IT 模型的典型使用流程，"
-            "包括模型加载状态监控、图像-文本到文本生成以及纯文本生成等环节。"
-        )
-
-        # 模型加载区
-        with gr.Row():
-            load_btn = gr.Button("加载模型（演示）", variant="primary")
-            status_box = gr.Textbox(label="模型状态", value="尚未加载", interactive=False)
-        load_btn.click(fn=fake_load_model, outputs=status_box)
-
-        with gr.Tabs():
-            # 图像-文本到文本
-            with gr.Tab("图像-文本到文本生成"):
-                gr.Markdown(
-                    "该功能模拟将图像和文本输入转换为文本输出，"
-                    "适用于图像问答、图像描述、视觉推理等任务。"
-                )
-                with gr.Row():
-                    image_input = gr.Image(label="输入图像", type="pil")
-                    text_input = gr.Textbox(
-                        label="文本提示",
-                        placeholder="例如：请描述这张图片中的内容。",
-                        lines=4,
-                    )
-                image_text_output = gr.Textbox(label="生成结果", lines=8, interactive=False)
-                image_text_btn = gr.Button("生成（演示）", variant="primary")
-                image_text_btn.click(
-                    fn=fake_image_text_to_text,
-                    inputs=[text_input, image_input],
-                    outputs=image_text_output
-                )
-
-            # 纯文本生成
-            with gr.Tab("纯文本生成"):
-                gr.Markdown(
-                    "该功能模拟基于文本输入生成文本输出，"
-                    "适用于对话、问答、摘要、推理等任务。"
-                )
-                text_prompt = gr.Textbox(
-                    label="文本提示",
-                    placeholder="例如：请解释一下量子计算的基本原理。",
-                    lines=6,
-                )
-                max_tokens_slider = gr.Slider(
-                    minimum=50,
-                    maximum=1000,
+with gr.Blocks(title="Gemma 3 27B IT WebUI", theme=gr.themes.Soft()) as demo:
+    gr.Markdown("""
+    # Gemma 3 27B IT 多模态图像文本生成 WebUI
+    
+    Gemma 3 是 Google 开发的多模态大语言模型，支持图像和文本输入，生成文本输出。
+    本界面用于加载 Gemma 3 27B IT（Instruction-Tuned）模型进行多模态推理与结果可视化。
+    
+    **模型信息**：
+    - 模型类型：多模态（图像-文本到文本）
+    - 参数量：27B
+    - 上下文窗口：128K tokens
+    - 支持语言：140+ 种语言
+    """)
+    
+    with gr.Row():
+        with gr.Column(scale=1):
+            gr.Markdown("### 输入区域")
+            input_image = gr.Image(
+                label="上传图片（可选）",
+                type="pil",
+                height=300
+            )
+            text_input = gr.Textbox(
+                label="文本提示",
+                placeholder="例如：What animal is in this image? 或 Tell me about this picture.",
+                lines=3
+            )
+            system_prompt = gr.Textbox(
+                label="系统提示（可选）",
+                placeholder="例如：You are a helpful assistant.",
+                lines=2,
+                value="You are a helpful assistant."
+            )
+            
+            with gr.Row():
+                max_tokens = gr.Slider(
+                    label="最大生成 tokens",
+                    minimum=1,
+                    maximum=8192,
                     value=200,
-                    step=50,
-                    label="最大生成长度（tokens）"
+                    step=1
                 )
-                text_output = gr.Textbox(label="生成结果", lines=10, interactive=False)
-                text_btn = gr.Button("生成（演示）", variant="primary")
-                text_btn.click(
-                    fn=fake_text_generation,
-                    inputs=[text_prompt, max_tokens_slider],
-                    outputs=text_output
+                temperature = gr.Slider(
+                    label="Temperature",
+                    minimum=0.1,
+                    maximum=2.0,
+                    value=0.7,
+                    step=0.1
                 )
-
-        gr.Markdown("---\n*说明：当前为轻量级演示界面，未实际下载与加载任何大规模模型参数。*")
-
-    return demo
-
-
-def main():
-    app = build_ui()
-    app.launch(server_name="127.0.0.1", server_port=7860, share=False)
-
+            
+            run_btn = gr.Button("生成文本", variant="primary", size="lg")
+            clear_btn = gr.Button("清空", variant="secondary")
+        
+        with gr.Column(scale=1):
+            gr.Markdown("### 输出区域")
+            output_text = gr.Textbox(
+                label="生成结果",
+                lines=15,
+                interactive=False
+            )
+            
+            gr.Markdown("""
+            ### 使用说明
+            
+            1. **上传图片**（可选）：支持 PNG、JPG 等格式，模型会将图像编码为 256 tokens
+            2. **输入文本提示**：描述你想要模型完成的任务
+            3. **设置参数**：调整最大生成 tokens 和 temperature
+            4. **点击生成**：模型将分析输入并生成文本回复
+            
+            **注意**：当前为演示模式，实际使用时需要加载模型权重。
+            """)
+    
+    # 绑定事件
+    run_btn.click(
+        fn=run_inference,
+        inputs=[input_image, text_input, system_prompt, max_tokens, temperature],
+        outputs=[output_text]
+    )
+    
+    def clear_all():
+        return None, "", "You are a helpful assistant.", 200, 0.7, ""
+    
+    clear_btn.click(
+        fn=clear_all,
+        outputs=[input_image, text_input, system_prompt, max_tokens, temperature, output_text]
+    )
+    
+    gr.Markdown("""
+    ---
+    **模型说明**：Gemma 3 27B IT 是基于 Transformer 架构的多模态大语言模型，支持图像和文本的联合理解与生成。
+    更多相关项目源码请访问：http://www.visionstudios.ltd
+    """)
 
 if __name__ == "__main__":
-    main()
+    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
